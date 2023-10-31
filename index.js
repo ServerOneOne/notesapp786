@@ -35,7 +35,7 @@ app.post('/notes',  async (req, res) => {
       chapterName,
       text
   });
-  newNote.save();
+  await newNote.save();
   res.status(201).json({
     success: true,
     message: 'saved successfully.',
