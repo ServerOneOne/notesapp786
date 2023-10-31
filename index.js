@@ -26,7 +26,8 @@ const noteSchema = new mongoose.Schema({
 
 const Note = mongoose.model('Note', noteSchema);
 
-app.post('/notes', (req, res) => {
+app.post('/notes',  async (req, res) => {
+    try {
   const { subject, chapterNo, chapterName, text } = req.body;
   const newNote = new Note({
       subject,
@@ -34,63 +35,81 @@ app.post('/notes', (req, res) => {
       chapterName,
       text
   });
-  newNote.save((err) => {
-      if (err) {
-          console.error(err);
-          res.status(500).send(err);
-      } else {
-          res.send({ subject, chapterName });
-      }
+  newNote.save();
+  res.status(201).json({
+    success: true,
+    message: 'saved successfully.',
+    
   });
-});
-
-app.get('/notes', (req, res) => {
-  Note.find({}, 'subject chapterNo chapterName text', (err, notes) => {
-      if (err) {
-          console.error(err);
-          res.status(500).send(err);
-      } else {
-          const formattedNotes = notes.map(note => ({
-              subject: note.subject,
-              chapterNo: note.chapterNo,
-              chapterName: note.chapterName,
-              text: note.text
-          }));
-          res.send(formattedNotes);
-      }
+} catch (error) {
+  console.error(error);
+  res.status(500).json({
+    success: false,
+    message: 'Failed to save .',
+    error: error,
   });
-});
-
-app.put('/notes/:id', (req, res) => {
-  const { subject, chapterNo, chapterName, text } = req.body;
-  const noteId = req.params.id;
-
-  Note.findByIdAndUpdate(noteId, { subject, chapterNo, chapterName, text }, { new: true }, (err, updatedNote) => {
-      if (err) {
-          console.error(err);
-          res.status(500).send(err);
-      } else {
-          res.send(updatedNote);
-      }
-  });
-});
-
-app.delete('/notes/:id', (req, res) => {
-  const noteId = req.params.id;
-
-  Note.findByIdAndRemove(noteId, (err, deletedNote) => {
-      if (err) {
-          console.error(err);
-          res.status(500).send(err);
-      } else {
-          res.send(deletedNote);
-      }
-  });
+}
 });
 
 
 
 
+app.get('/notes', async (req, res) => {
+    try {
+      const experiences = await Note.find();
+      res.json(experiences);
+    } catch (error) {
+      alert(error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch.',
+        error: error,
+      });
+    }
+  });
+
+  
+
+
+// Update an experience
+app.put('/notes/:id', async (req, res) => {
+    const { id } = req.params;
+    const { subject, chapterNo, chapterName, text } = req.body;
+  
+    try {
+      const updatedExperience = await Note.findByIdAndUpdate(id, {
+        subject : subject,
+         chapterNo : chapterNo,
+         chapterName : chapterName,
+          text:text
+      }, { new: true });
+  
+      res.json(updatedExperience);
+    } catch (error) {
+      console.error('Error updating experience', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
+  
+
+
+
+// Delete an experience
+app.delete('/notes/:id', async (req, res) => {
+    const { id } = req.params;
+  
+    try {
+      await Note.findByIdAndDelete(id);
+  
+      res.json({ message: 'Experience deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting experience', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
+  
 
 
 
