@@ -32,29 +32,41 @@ const noteSchema = new mongoose.Schema({
 
 const Note = mongoose.model('Note', noteSchema);
 
-app.post('/notes',  async (req, res) => {
-    try {
-  const { subject, chapterNo, chapterName, text } = req.body;
-  const newNote = new Note({
-      subject,
-      chapterNo,
-      chapterName,
-      text
-  });
-  await newNote.save();
-  res.status(201).json({
-    success: true,
-    message: 'saved successfully.',
-    
-  });
-} catch (error) {
-  console.error(error);
-  res.status(500).json({
-    success: false,
-    message: 'Failed to save .',
-    error: error,
-  });
-}
+app.post('/notes', async (req, res) => {
+  try {
+      const { subject, chapterNo, chapterName, text } = req.body;
+      // Check if the note already exists with the same subject, chapterNo, and chapterName
+      const existingNote = await Note.findOne({ subject, chapterNo, chapterName });
+      if (existingNote) {
+          // If the note exists, update the existing record
+          existingNote.text = text;
+          await existingNote.save();
+          return res.status(200).json({
+              success: true,
+              message: 'Data updated successfully.',
+          });
+      } else {
+          // If the note doesn't exist, create a new record
+          const newNote = new Note({
+              subject,
+              chapterNo,
+              chapterName,
+              text
+          });
+          await newNote.save();
+          return res.status(201).json({
+              success: true,
+              message: 'Data saved successfully.',
+          });
+      }
+  } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+          success: false,
+          message: 'Failed to save data.',
+          error: error,
+      });
+  }
 });
 
 
@@ -77,7 +89,7 @@ app.get('/notes', async (req, res) => {
   
 
 
-// Update an experience
+  
 app.put('/notes/:id', async (req, res) => {
     const { id } = req.params;
     const { subject, chapterNo, chapterName, text } = req.body;
