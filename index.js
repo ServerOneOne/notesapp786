@@ -27,14 +27,16 @@ const noteSchema = new mongoose.Schema({
   subject: String,
   chapterNo: Number,
   chapterName: String,
-  text: String
+  text: String,
+  title: String
+  
 });
 
 const Note = mongoose.model('Note', noteSchema);
 
 app.post('/notes', async (req, res) => {
   try {
-      const { subject, chapterNo, chapterName, text } = req.body;
+      const { subject, chapterNo, chapterName, text , title } = req.body;
       // Check if the note already exists with the same subject, chapterNo, and chapterName
       const existingNote = await Note.findOne({ subject, chapterNo, chapterName });
       if (existingNote) {
@@ -51,7 +53,8 @@ app.post('/notes', async (req, res) => {
               subject,
               chapterNo,
               chapterName,
-              text
+              text,
+              title
           });
           await newNote.save();
           return res.status(201).json({
@@ -92,14 +95,15 @@ app.get('/notes', async (req, res) => {
   
 app.put('/notes/:id', async (req, res) => {
     const { id } = req.params;
-    const { subject, chapterNo, chapterName, text } = req.body;
+    const { subject, chapterNo, chapterName, text  , title} = req.body;
   
     try {
       const updatedExperience = await Note.findByIdAndUpdate(id, {
         subject : subject,
          chapterNo : chapterNo,
          chapterName : chapterName,
-          text:text
+          text:text,
+          title:title
       }, { new: true });
   
       res.json(updatedExperience);
